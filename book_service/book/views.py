@@ -1,11 +1,14 @@
+import json
+
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 
-from book_service.book.models import Book, BookCategory, Author, Publisher
-from book_service.book.serializers import BookSerializer, CategorySerializer, AuthorSerializer, PublisherSerializer
+from .models import Book, BookCategory, Author, Publisher
+from .serializers import BookSerializer, CategorySerializer, AuthorSerializer, PublisherSerializer
 
 
 @api_view(['GET', 'POST'])
@@ -126,6 +129,7 @@ def publisher_detail(request, pk):
         return Response(status=status.HTTP_202_ACCEPTED)
 
 @api_view(['GET', 'POST'])
+@parser_classes((MultiPartParser, FormParser))
 def view_books(request):
     if request.method == 'GET':
         books = Book.objects.filter(**request.query_params.dict())
@@ -135,13 +139,16 @@ def view_books(request):
         book_serializer = BookSerializer(data=request.data)
         if book_serializer.is_valid():
             book = book_serializer.save()
-            categories_ids = request.data.get('categories', [])
-            book.categories.set(categories_ids)
+            _categories = json.loads(request.data.get('categories', '[]'))
+            book.categories.set([BookCategory.objects.get(pk=pk) for pk in _categories])
+            # categories_ids = request.data.get('categories', [])
+            # book.categories.set(categories_ids)
             return Response(book_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(book_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@parser_classes((MultiPartParser, FormParser))
 def book_detail(request, pk):
     book = get_object_or_404(Book, pk=pk)
     if request.method == 'GET':
@@ -151,8 +158,8 @@ def book_detail(request, pk):
         data = BookSerializer(book, data=request.data)
         if data.is_valid():
             book = data.save()
-            categories_ids = request.data.get('categories', [])
-            book.categories.set(categories_ids)
+            _categories = json.loads(request.data.get('categories', '[]'))
+            book.categories.set([BookCategory.objects.get(pk=pk) for pk in _categories])
             return Response(data.data)
         else:
             return Response(data.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from book_service.book.models import BookCategory, Book, Author, Publisher
+from .models import BookCategory, Book, Author, Publisher
 
 
 
@@ -19,9 +19,9 @@ class PublisherSerializer(serializers.ModelSerializer):
 		fields = '__all__'
 
 class BookSerializer(serializers.ModelSerializer):
-	author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
-	publisher = serializers.PrimaryKeyRelatedField(queryset=Publisher.objects.all())
-	categories = serializers.PrimaryKeyRelatedField(many=True, queryset=BookCategory.objects.all())
+	author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), allow_empty=False)
+	publisher = serializers.PrimaryKeyRelatedField(queryset=Publisher.objects.all(), allow_empty=False)
+	categories = CategorySerializer(many=True, read_only=True)
 	class Meta:
 		model = Book
 		# fields = ['title', 'publisher','author','year', 'images', 'description', 'language', 'categories', 'price']

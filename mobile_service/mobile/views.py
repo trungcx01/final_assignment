@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Mobile,MobileCategory
-from mobile_service.mobile.serializers import MobileSerializer, MobileCategorySerializer
+from .serializers import MobileSerializer, MobileCategorySerializer
 
 
 @api_view(['GET', 'POST'])
